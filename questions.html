@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>おすすめ漫画診断</title>
+  <link rel="stylesheet" href="./CSS/style.css">
+</head>
+<body>
+
+<div class="container">
+  <div id="start" class="start">
+    <h1 id="maintitle">漫画検索くん</h1>
+    <button id="start-btn1" class="btn">おすすめ漫画診断を始める</button>
+    <button id="start-btn2" class="btn">読みたいジャンルから検索する</button>
+  </div>
+  <div id="quiz" class="quiz hide">
+    <div id="question" class="question"></div>
+    <div id="answer-buttons" class="answer-buttons"></div>
+  </div>
+  <div id="result" class="result hide">
+    <h1>診断結果</h1>
+    <div id="score"></div><br>
+    <img id="comicimg"><br>
+    <div id="detail"></div>
+    <p id="result-text" class="result-text"></p>
+    <button id="restart-btn" class="btn">もう一度診断する</button>
+  </div>
+</div>
+
+<!-- JSファイルの読み込み -->
+<script src="./JS/question_01.js"></script>
+<!-- <script src="./JS/question_02.js"></script> -->
+
+<!-- ** 以下Firebase ** -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js';
+import { getFirestore, collection, getDocs, doc, query, where } from 'https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js';
+
+// TODO: Replace the following with your app's Firebase project configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyBQPqJD2lVSo4hn-uoTEc01lvxMx9XHfzI",
+  authDomain: "gsdemo-3437d.firebaseapp.com",
+  databaseURL: "https://gsdemo-3437d-default-rtdb.firebaseio.com",
+  projectId: "gsdemo-3437d",
+  storageBucket: "gsdemo-3437d.appspot.com",
+  messagingSenderId: "634231929398",
+  appId: "1:634231929398:web:226263c6636791ce93b697"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); //FirestoreDBに接続
+
+// comicsコレクション内のドキュメントを取得
+async function getComics(db) {
+  const comicsCol = collection(db, 'comics');
+  const comicsSnapshot = await getDocs(comicsCol);
+  const comicsList = comicsSnapshot.docs.map(doc => doc.data());
+  // console.log(comicsList);
+  return comicsList;
+}
+
+// 関数を定数comicsListに格納
+const comicsList = async function () {
+const comicsList = await getComics(db);
+return comicsList;
+}
+
+// 関数を実行して取得状況の確認
+comicsList();
+
+// ========================================================
+//②ジャンルから検索
+const questions2 = [{
+  question: "好きなカテゴリを選んでください",
+  answers: [{
+    text: "少年漫画",
+    value: "boy",
+  },
+  {
+    text: "青年漫画",
+    value: "youth",
+  },
+  {
+    text: "少女漫画",
+    value: "girl",
+  }]
+},
+{
+  question: "好きなジャンルをえらんでください",
+  answers: [{
+    text: "アクション",
+    value: "action",
+  },
+  {
+    text: "ヒューマンドラマ",
+    value: "human",
+  },
+  {
+    text: "ファンタジー",
+    value: "fantasy",
+  },
+  {
+    text: "青春・学園",
+    value: "academy",
+  },
+  {
+    text: "スポーツ",
+    value: "sports",
+  },
+    {
+    text: "コメディ",
+    value: "comedy",
+  }]
+},
+{
+  question: "読みたいボリューム（巻数）を選んでください",
+  answers: [{
+    text: "10巻以下",
+    value: 10,
+  },
+  {
+    text: "30巻未満",
+    value: 29,
+  },
+  {
+    text: "30巻以上",
+    value: 30
+  }]
+}];
+
+// 開始時の配列を空で宣言（配列に情報を追加していく）
+let tagArray = [];
+
+//   const tag = tagArray.reduce(function (sum, currentValue) {
+//     return sum + parseInt(currentValue);
+//   });
+//   for (let i = 0; i < results2.length; i++) {
+//     const result = results2[i];
+//       //サバイバル
+//     if (tag <= 7 && i === 0) {
+//       scoreElement.innerText = result.text;
+//       comicImg.src = "../img/survival.jpg";
+//       detail.innerText = result.detail;
+//       break;
+//       //AKIRA
+//     } else if (tag <= 10 && i === 1) {
+//       scoreElement.innerText = result.text;
+//       comicImg.src = "../img/AKIRA.jpg";
+//       detail.innerText = result.detail;
+//       break;
+//       //よつばと
+//     } else if (tag <= 14 && i === 2) {
+//       scoreElement.innerText = result.text;
+//       comicImg.src = "../img/YOTSUBATO.jpg";
+//       detail.innerText = result.detail;
+//       break;
+//       //葬送のフリーレン
+//     } else if (tag <= 17 && i === 3) {
+//       scoreElement.innerText = result.text;
+//       comicImg.src = "../img/fur-iren.jpg";
+//       detail.innerText = result.detail;
+//       break;
+//       //ブルーピリオド
+//     } else if (tag <= 20 && i === 4){
+//       scoreElement.innerText = result.text;
+//       comicImg.src = "../img/bluepiriod.jpg";
+//       detail.innerText = result.detail;
+//       break;
+//     }
+//   }
+// }
+
+
+// 検索開始時のイベント
+let currentQuestionIndex2 = 0;
+startButton2.addEventListener("click", function () {
+  startQuiz2();
+})
+
+// 検索開始時の関数（デフォルト表示コンテンツの切り替え）
+function startQuiz2() {
+  document.getElementById("maintitle").innerHTML = "ジャンルから検索";
+  startButton1.classList.add("hide")
+  startButton2.classList.add("hide")
+  resultContainer.classList.add("hide")
+  quizContainer.classList.remove("hide")
+  showQuestion2()
+}
+
+// 診断開始時
+function showQuestion2() {
+  // 質問内容の表示
+  questionElement.innerText = questions2[currentQuestionIndex2].question;
+
+  // 回答項目の表示
+  questions2[currentQuestionIndex2].answers.forEach(function (answer) {
+    // ボタンタグを生成して、回答項目を挿入する
+    const button = document.createElement("button")
+    button.innerText = answer.text;
+    const value = answer.value;
+    button.dataset.value = value;
+    answerButtonsElement.appendChild(button)
+    // 回答を選択した際のクリックイベント
+    button.addEventListener("click", selectAnswer2)
+  })
+}
+
+// 選択肢をクリックした時の配列への情報取得と次の質問へ移行するかの判断
+function selectAnswer2(e) {
+  const selectedButton2 = e.target;
+  // console.log("selectedButton2.dataset.value=" + selectedButton2.dataset.value); //選択した回答のvalueの値を確認する
+
+  //選択した回答を変数に格納
+  const tagData = selectedButton2.dataset.value;
+
+  // 変数のデータを配列に格納
+  tagArray.push(tagData);
+  console.log(tagArray);
+
+  // 質問がまだ残っているか調査。最終質問の場合、診断結果画面を表示する
+  if (currentQuestionIndex2 < questions2.length - 1) {
+    resetState()
+    currentQuestionIndex2++
+    showQuestion2()
+  } else {
+    showResult2();
+  }
+}
+
+// 診断結果の表示
+function showResult2() {
+  // 最終的な配列データの確認
+  console.log(tagArray)
+  quizContainer.classList.add("hide");
+  resultContainer.classList.remove("hide");
+  // showResultText2();
+  collectArrayNameElement();
+}
+
+// DB内の巻数データをvalue（10,29,30)のどれかに分類する
+const getComicsNumRange = (n) => {
+  if (n <= 10) {
+    return 10;
+  } else if (11 < n && n <= 29) {
+    return 29;
+  } else if (n >= 30) {
+    return 30;
+  }
+}
+
+// DB内のドキュメントの取得
+const comicsArray = await getComics(db);
+console.log(comicsArray);
+
+
+let collectArray;
+// 検索結果の表示
+const showResultText2 = async function () {
+  // デー取得の確認
+  // console.log(tagArray);
+  let result = comicsArray.filter((comic) => {
+    // console.log(getComicsNumRange(comic.number));
+    return comic.category === tagArray[0] && comic.genre === tagArray[1] && getComicsNumRange(comic.number) === parseInt(tagArray[2]);
+  });
+  console.log("回答", result);
+    return result;
+}
+
+// const collectArrayNameElement = async function () {
+//   let result = await showResultText2();
+//   console.log(result);
+//   for (let i=0; i<result.length; i++) {
+//     // let dataCheck = function check() {
+//     let resultName = result[i].name;
+//     console.log(result[i].name);
+//     // return result[i].name;
+//     scoreElement.innerHTML = result[i].name;
+//     detail.innerText = result[i].text;
+//     // }
+//   }
+// }
+
+// const collectArrayNameElement = async function () {
+//   let result = await showResultText2();
+//   console.log(result);
+//   let zenbu;
+
+//   for (let i=0; i<result.length; i++) {
+//     let resultName = result[i].name;
+//     let gaiyou = result[i].gaiyou;
+
+//     let ikkoName = `<div>${resultName}</div>`
+//     let ikkoGaiyou = `<div>${gaiyou}</div>`
+
+//     let ikkoZenbu = `<div>${ikkoName}${ikkoGaiyou}</div>`
+//     zenbu = zenbu + ikkoZenbu
+//   }
+//   console.log(zenbu)
+//   allResult.innerHTML = zenbu;
+// }
+
+// collectArray内のnameを取得したい
+const collectArrayNameElement = async function () {
+  let result = await showResultText2();
+  console.log(result);
+  let resultName = result[0].name;
+  console.log(result[0].name);
+  // return result[0].name;
+
+  scoreElement.innerHTML = result[0].name;
+  // comicImg = result[0].img
+  // console.log(comicImg);
+  detail.innerText = result[0].text;
+}
+
+// リスタートする際のクリックイベント
+restartButton.addEventListener("click", () => {
+  resultContainer.classList.add("hide")
+  startButton1.classList.remove("hide")
+  startButton2.classList.remove("hide")
+  currentQuestionIndex2 = 0;
+  tagArray = [];
+  resetState()
+})
+
+// リスタートする際に生成した子要素を初期状態まで戻す
+function resetState() {
+  while (answerButtonsElement.firstChild) {
+    answerButtonsElement.removeChild(answerButtonsElement.firstChild)
+  }
+}
+
+// =====================
+// const comicsArray2 = [
+//   { category: 'youth', genre: 'human', number: 10, name: 'BLUE GIANT' },
+//   { genre: 'academy', category: 'girl', number: 10, name: 'ハチミツとクローバー' },
+//   { name: '呪術廻戦', genre: 'action', category: 'boy', number: 24 }
+// ];
+
+// const TtagArray = ["boy", "action", 29];
+
+// const getResult2 = () => {
+//   let collectArray2 = comicsArray.filter((comic) => {
+//     // console.log(getComicsNumRange(comic.number));
+//     return comic.category === TtagArray[0] && comic.genre === TtagArray[1] && getComicsNumRange(comic.number) === TtagArray[2];
+//   });
+//   console.log("回答",collectArray2);
+// }
+
+// getResult2();
+// =====================
+
+</script>
+
+</body>
+</html>
